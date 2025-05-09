@@ -5,7 +5,6 @@ import { Select } from 'src/ui/select';
 import { RadioGroup } from 'src/ui/radio-group';
 import { Text } from 'src/ui/text';
 import { Separator } from 'src/ui/separator';
-
 import {
 	fontFamilyOptions,
 	fontSizeOptions,
@@ -29,22 +28,25 @@ export const ArticleParamsForm = ({
 									  onApply,
 									  onReset,
 								  }: ArticleParamsFormProps) => {
-	const [isOpen, setIsOpen] = useState(false);
+	// Переименовано в isMenuOpen для ясности
+	const [isMenuOpen, setIsMenuOpen] = useState(false);
 	const [formState, setFormState] = useState<ArticleStateType>(currentState);
 	const panelRef = useRef<HTMLDivElement>(null);
 
-	const togglePanel = () => {
-		setIsOpen(!isOpen);
+	const toggleMenu = () => {
+		setIsMenuOpen(!isMenuOpen);
 	};
 
 	useEffect(() => {
+		// Прекращаем выполнение эффекта, если меню закрыто
+		if (!isMenuOpen) return;
+
 		const handleClickOutside = (event: MouseEvent) => {
 			if (
 				panelRef.current &&
-				!panelRef.current.contains(event.target as Node) &&
-				isOpen
+				!panelRef.current.contains(event.target as Node)
 			) {
-				setIsOpen(false);
+				setIsMenuOpen(false);
 			}
 		};
 
@@ -52,7 +54,7 @@ export const ArticleParamsForm = ({
 		return () => {
 			document.removeEventListener('mousedown', handleClickOutside);
 		};
-	}, [isOpen]);
+	}, [isMenuOpen]); // Зависимость от isMenuOpen
 
 	const handleFontFamilyChange = (selected: OptionType) => {
 		setFormState({ ...formState, fontFamilyOption: selected });
@@ -77,38 +79,28 @@ export const ArticleParamsForm = ({
 	const handleSubmit = (e: React.FormEvent) => {
 		e.preventDefault();
 		onApply(formState);
-		setIsOpen(false);
+		setIsMenuOpen(false);
 	};
 
 	const handleReset = (e: React.FormEvent) => {
 		e.preventDefault();
 		setFormState(defaultArticleState);
 		onReset();
-		setIsOpen(false);
+		setIsMenuOpen(false);
 	};
 
 	return (
 		<>
-			{/* Кнопка-стрелка для управления панелью */}
-			<ArrowButton isOpen={isOpen} onClick={togglePanel} />
-
-			{/* Панель настроек */}
+			<ArrowButton isOpen={isMenuOpen} onClick={toggleMenu} />
 			<aside
 				ref={panelRef}
-				className={`${styles.container} ${isOpen ? styles.container_open : ''}`}
+				className={`${styles.container} ${isMenuOpen ? styles.container_open : ''}`}
 			>
-				{/* Форма настроек */}
-				<form
-					className={styles.form}
-					onSubmit={handleSubmit}
-					onReset={handleReset}
-				>
-					{/* Заголовок формы */}
+				<form className={styles.form} onSubmit={handleSubmit} onReset={handleReset}>
 					<Text as="h2" size={31} weight={800} uppercase>
 						Задайте параметры
 					</Text>
 
-					{/* Поле выбора шрифта */}
 					<Select
 						selected={formState.fontFamilyOption}
 						options={fontFamilyOptions}
@@ -116,7 +108,6 @@ export const ArticleParamsForm = ({
 						onChange={handleFontFamilyChange}
 					/>
 
-					{/* Группа радиокнопок для размера шрифта */}
 					<RadioGroup
 						name="fontSize"
 						options={fontSizeOptions}
@@ -125,7 +116,6 @@ export const ArticleParamsForm = ({
 						onChange={handleFontSizeChange}
 					/>
 
-					{/* Поле выбора цвета текста */}
 					<Select
 						selected={formState.fontColor}
 						options={fontColors}
@@ -133,10 +123,8 @@ export const ArticleParamsForm = ({
 						onChange={handleFontColorChange}
 					/>
 
-					{/* Разделительная линия */}
 					<Separator />
 
-					{/* Поле выбора цвета фона */}
 					<Select
 						selected={formState.backgroundColor}
 						options={backgroundColors}
@@ -144,7 +132,6 @@ export const ArticleParamsForm = ({
 						onChange={handleBackgroundColorChange}
 					/>
 
-					{/* Поле выбора ширины контента */}
 					<Select
 						selected={formState.contentWidth}
 						options={contentWidthArr}
@@ -152,7 +139,6 @@ export const ArticleParamsForm = ({
 						onChange={handleContentWidthChange}
 					/>
 
-					{/* Контейнер с кнопками действий */}
 					<div className={styles.bottomContainer}>
 						<Button title="Сбросить" htmlType="reset" type="clear" />
 						<Button title="Применить" htmlType="submit" type="apply" />
